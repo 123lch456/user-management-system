@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if user %}
+    {# ===== 已登录状态 — 终端输出风格 ===== #}
+    <div class="terminal-output">
+        <span class="line green">[+] 身份验证通过</span>
+        <span class="line dim">[*] 正在加载用户数据...</span>
+        <span class="line green">[+] 完成。</span>
+        <hr class="terminal-divider">
+
+        <div class="terminal-box">
+            <div class="terminal-box-title">// USER PROFILE — {{ user.role | upper }}</div>
+            <table class="terminal-table">
+                <tr>
+                    <td class="label">用户名</td>
+                    <td class="value">{{ user.username }}</td>
+                </tr>
+                <tr>
+                    <td class="label">邮箱</td>
+                    <td class="value email">{{ user.email }}</td>
+                </tr>
+                <tr>
+                    <td class="label">手机</td>
+                    <td class="value phone">{{ user.phone }}</td>
+                </tr>
+                <tr>
+                    <td class="label">角色</td>
+                    <td class="value {{ user.role }}">{{ user.role }}</td>
+                </tr>
+                <tr>
+                    <td class="label">余额</td>
+                    <td class="value balance">¥{{ user.balance }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <span class="line gray">[ {# 仅 admin 显示特殊信息 #}
+            {%- if user.role == 'admin' -%}
+            root 权限 — 所有操作已记录
+            {%- else -%}
+            普通用户 — 权限受限
+            {%- endif -%}
+        ]</span>
+        <hr class="terminal-divider">
+        <span class="line dim">使用以下命令退出系统：</span>
+    </div>
+
+    <a href="/logout" class="logout-link">
+        ⏻ logout
+    </a>
+
+{% else %}
+    {# ===== 未登录状态 ===== #}
+    <div class="terminal-output">
+        <span class="line gray">上次登录：未登录</span>
+        <hr class="terminal-divider">
+        <span class="line dim">   ___ _   _ ___  ___  ___ ___ ___</span>
+        <span class="line dim">  / _ \ | | | _ \/ _ \| _ \_ _/ __|</span>
+        <span class="line dim"> | (_) | |_| |   / (_) |  _/| |\__ \</span>
+        <span class="line dim">  \__\_\\__,_|_|_\\\___/|_| |___|___/</span>
+        <span class="line dim">  ___ _   _ _  _  ___ ___ ___ ___</span>
+        <span class="line dim"> / __| | | | \| |/ _ \ __/ __/ __|</span>
+        <span class="line dim"> \__ \ |_| | .` | (_) _|\__ \__ \</span>
+        <span class="line dim"> |___/\___/|_|\_|\___/___|___/___/</span>
+        <hr class="terminal-divider">
+
+        <span class="line amber">⚠  此系统为授权用户专用</span>
+        <span class="line gray">   请登录以访问用户管理面板</span>
+        <span class="line dim">   ─────────────────────────────</span>
+    </div>
+
+    <a href="/login" class="terminal-btn success">
+        <span class="btn-arrow">→</span> 登录系统
+    </a>
+{% endif %}
+
+{% endblock %}

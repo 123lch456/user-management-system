@@ -1,0 +1,564 @@
+/* ====================================================================
+   TERMINAL THEME — 用户管理系统
+   复古终端风格 / Retro CRT Terminal Aesthetic
+   ==================================================================== */
+
+/* ==================== 字体导入 ==================== */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+/* ==================== CSS 变量 ==================== */
+:root {
+    --bg-primary: #0c0c0c;
+    --bg-secondary: #111111;
+    --bg-terminal: #0a0a0a;
+    --green-primary: #00ff41;
+    --green-dim: #00cc33;
+    --green-dark: #003b00;
+    --green-glow: rgba(0, 255, 65, 0.15);
+    --amber: #ffb000;
+    --red: #ff3355;
+    --cyan: #00ffff;
+    --white: #d0d0d0;
+    --gray: #666666;
+    --border-color: #1a3a1a;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+    --transition: 0.2s ease;
+}
+
+/* ==================== CRT 扫描线动画 ==================== */
+@keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+}
+
+@keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.998; }
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 5px var(--green-glow), 0 0 10px var(--green-glow); }
+    50% { box-shadow: 0 0 10px var(--green-glow), 0 0 20px var(--green-glow); }
+}
+
+@keyframes boot-sequence {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== 全局 Reset ==================== */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    font-family: var(--font-mono);
+    background: var(--bg-primary);
+    color: var(--green-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    animation: flicker 0.15s infinite;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* ==================== CRT 扫描线覆盖 ==================== */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: rgba(0, 255, 65, 0.06);
+    pointer-events: none;
+    z-index: 9999;
+    animation: scanline 8s linear infinite;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 0, 0, 0.03) 2px,
+            rgba(0, 0, 0, 0.03) 4px
+        );
+    pointer-events: none;
+    z-index: 9998;
+}
+
+/* ==================== 终端窗口框架 ==================== */
+.terminal-wrapper {
+    max-width: 780px;
+    margin: 40px auto;
+    padding: 0 16px;
+    animation: boot-sequence 0.6s ease-out;
+}
+
+.terminal-window {
+    background: var(--bg-terminal);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow:
+        0 0 20px rgba(0, 255, 65, 0.05),
+        inset 0 0 60px rgba(0, 0, 0, 0.5);
+    animation: pulse-glow 4s ease-in-out infinite;
+}
+
+/* ==================== 终端标题栏 ==================== */
+.terminal-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #1a1a1a;
+    border-bottom: 1px solid var(--border-color);
+    user-select: none;
+}
+
+.titlebar-dots {
+    display: flex;
+    gap: 8px;
+}
+
+.titlebar-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: opacity var(--transition);
+}
+
+.titlebar-dot:hover {
+    opacity: 0.8;
+}
+
+.titlebar-dot.close { background: #ff5f56; }
+.titlebar-dot.minimize { background: #ffbd2e; }
+.titlebar-dot.maximize { background: #27c93f; }
+
+.titlebar-text {
+    color: var(--gray);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.titlebar-text::before {
+    content: '● ';
+    color: var(--green-dim);
+    animation: blink 1.2s step-end infinite;
+}
+
+.titlebar-menu {
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+    color: #555;
+}
+
+/* ==================== 终端内容区域 ==================== */
+.terminal-body {
+    padding: 24px 28px;
+    min-height: 420px;
+    position: relative;
+}
+
+/* ==================== 终端提示行 ==================== */
+.terminal-prompt-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+    color: var(--gray);
+    font-size: 12px;
+}
+
+.terminal-prompt-line .prompt-user {
+    color: var(--green-primary);
+}
+
+.terminal-prompt-line .prompt-at {
+    color: var(--gray);
+}
+
+.terminal-prompt-line .prompt-host {
+    color: var(--cyan);
+}
+
+.terminal-prompt-line .prompt-path {
+    color: var(--amber);
+}
+
+/* ==================== 命令输出 ==================== */
+.terminal-output {
+    margin: 16px 0 20px;
+    padding-left: 4px;
+}
+
+.terminal-output .line {
+    display: block;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.terminal-output .line.green { color: var(--green-primary); }
+.terminal-output .line.cyan { color: var(--cyan); }
+.terminal-output .line.amber { color: var(--amber); }
+.terminal-output .line.red { color: var(--red); }
+.terminal-output .line.gray { color: var(--gray); }
+.terminal-output .line.white { color: var(--white); }
+.terminal-output .line.dim { color: var(--green-dim); }
+
+.terminal-output .indent {
+    padding-left: 20px;
+}
+
+.terminal-output .separator {
+    color: var(--border-color);
+    margin: 12px 0;
+}
+
+/* ==================== 终端分隔线 ==================== */
+.terminal-divider {
+    border: none;
+    border-top: 1px dashed var(--border-color);
+    margin: 16px 0;
+}
+
+/* ==================== 终端表单 ==================== */
+.terminal-form {
+    margin-top: 8px;
+}
+
+.terminal-field {
+    margin-bottom: 12px;
+}
+
+.terminal-field .field-prompt {
+    display: block;
+    color: var(--amber);
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.terminal-field .field-prompt::before {
+    content: '> ';
+    color: var(--green-dim);
+}
+
+.terminal-input {
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(0, 255, 65, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--green-primary);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    outline: none;
+    transition: border-color var(--transition), background var(--transition);
+}
+
+.terminal-input:focus {
+    border-color: var(--green-dim);
+    background: rgba(0, 255, 65, 0.06);
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.08);
+}
+
+.terminal-input::placeholder {
+    color: #2a4a2a;
+    font-style: italic;
+}
+
+/* password 字段的特殊样式 - 掩盖输入 */
+.terminal-input[type="password"] {
+    /* 保持相同样式 */
+}
+
+/* ==================== 终端按钮 ==================== */
+.terminal-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 28px;
+    margin-top: 8px;
+    background: transparent;
+    color: var(--green-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all var(--transition);
+    text-decoration: none;
+}
+
+.terminal-btn:hover {
+    background: rgba(0, 255, 65, 0.08);
+    border-color: var(--green-dim);
+    box-shadow: 0 0 12px rgba(0, 255, 65, 0.1);
+}
+
+.terminal-btn:active {
+    background: rgba(0, 255, 65, 0.12);
+}
+
+.terminal-btn.danger {
+    color: var(--red);
+    border-color: rgba(255, 51, 85, 0.3);
+}
+
+.terminal-btn.danger:hover {
+    background: rgba(255, 51, 85, 0.08);
+    border-color: var(--red);
+    box-shadow: 0 0 12px rgba(255, 51, 85, 0.1);
+}
+
+.terminal-btn.success {
+    color: var(--green-primary);
+}
+
+.terminal-btn .btn-arrow {
+    color: var(--green-dim);
+    font-weight: 700;
+}
+
+/* ==================== 错误消息（终端风格） ==================== */
+.terminal-error {
+    color: var(--red);
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 51, 85, 0.2);
+    background: rgba(255, 51, 85, 0.05);
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.terminal-error::before {
+    content: '! ERROR: ';
+    font-weight: 600;
+}
+
+/* ==================== 用户信息表格 ==================== */
+.terminal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px;
+}
+
+.terminal-table tr {
+    border-bottom: 1px solid rgba(0, 255, 65, 0.06);
+}
+
+.terminal-table tr:last-child {
+    border-bottom: none;
+}
+
+.terminal-table td {
+    padding: 10px 8px;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.terminal-table .label {
+    color: var(--gray);
+    width: 100px;
+    font-weight: 500;
+}
+
+.terminal-table .label::after {
+    content: ':';
+    color: var(--green-dim);
+}
+
+.terminal-table .value {
+    color: var(--white);
+    font-weight: 400;
+}
+
+.terminal-table .value.admin {
+    color: var(--amber);
+}
+
+.terminal-table .value.user {
+    color: var(--cyan);
+}
+
+.terminal-table .value.balance {
+    color: var(--green-primary);
+    font-weight: 700;
+}
+
+.terminal-table .value.email {
+    color: var(--cyan);
+    opacity: 0.9;
+}
+
+.terminal-table .value.phone {
+    color: var(--white);
+    opacity: 0.8;
+}
+
+/* ==================== 闪烁光标 ==================== */
+.cursor-blink {
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    background: var(--green-primary);
+    margin-left: 4px;
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom;
+}
+
+/* ==================== 加载/等待动画 ==================== */
+@keyframes loading-dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
+}
+
+/* ==================== ASCII 艺术字 ==================== */
+.ascii-art {
+    color: var(--green-dim);
+    font-size: 11px;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    white-space: pre;
+    opacity: 0.7;
+}
+
+/* ==================== 欢迎区域顶部 ==================== */
+.welcome-ascii {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+/* ==================== 底部状态栏 ==================== */
+.terminal-footer {
+    margin-top: 16px;
+    padding: 8px 16px;
+    background: #0d0d0d;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--gray);
+}
+
+.footer-left,
+.footer-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.footer-indicator {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green-primary);
+    animation: blink 1.5s step-end infinite;
+}
+
+/* ==================== 输出分组框 ==================== */
+.terminal-box {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin: 12px 0 16px;
+    background: rgba(0, 255, 65, 0.01);
+}
+
+.terminal-box-title {
+    color: var(--gray);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+/* ==================== 退出链接 ==================== */
+.logout-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--red);
+    text-decoration: none;
+    font-size: 12px;
+    padding: 6px 12px;
+    border: 1px solid rgba(255, 51, 85, 0.2);
+    border-radius: 4px;
+    transition: all var(--transition);
+}
+
+.logout-link:hover {
+    background: rgba(255, 51, 85, 0.08);
+    border-color: var(--red);
+}
+
+/* ==================== 响应式 ==================== */
+@media (max-width: 640px) {
+    .terminal-wrapper {
+        margin: 16px auto;
+        padding: 0 8px;
+    }
+
+    .terminal-body {
+        padding: 16px 14px;
+        min-height: 360px;
+    }
+
+    .terminal-titlebar {
+        padding: 8px 12px;
+    }
+
+    .titlebar-menu {
+        display: none;
+    }
+
+    .terminal-table td {
+        padding: 8px 4px;
+        font-size: 12px;
+    }
+
+    .terminal-table .label {
+        width: 70px;
+    }
+
+    .ascii-art {
+        font-size: 8px;
+    }
+
+    .terminal-footer {
+        flex-direction: column;
+        gap: 4px;
+        text-align: center;
+    }
+}

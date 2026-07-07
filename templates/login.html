@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="terminal-output">
+    <span class="line dim">[*] 正在建立安全连接...</span>
+    <span class="line green">[+] 连接已建立 (TLS 1.3)</span>
+    <hr class="terminal-divider">
+    <span class="line cyan">
+      ██╗░░░░░░█████╗░░██████╗░██╗███╗░░██╗
+      ██║░░░░░██╔══██╗██╔════╝░██║████╗░██║
+      ██║░░░░░██║░░██║██║░░██╗░██║██╔██╗██║
+      ██║░░░░░██║░░██║██║░░╚██╗██║██║╚████║
+      ███████╗╚█████╔╝╚██████╔╝██║██║░╚███║
+      ╚══════╝░╚════╝░░╚═════╝░╚═╝╚═╝░░╚══╝
+    </span>
+    <hr class="terminal-divider">
+</div>
+
+{% if error %}
+<div class="terminal-error">{{ error }}</div>
+{% endif %}
+
+<form method="POST" action="/login" class="terminal-form">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+    <div class="terminal-field">
+        <label class="field-prompt" for="username">用户名 / Username</label>
+        <input type="text" id="username" name="username" class="terminal-input"
+               placeholder="请输入用户名 (login as...)"
+               required autocomplete="username">
+    </div>
+
+    <div class="terminal-field">
+        <label class="field-prompt" for="password">密码 / Password</label>
+        <input type="password" id="password" name="password" class="terminal-input"
+               placeholder="············"
+               required autocomplete="current-password">
+    </div>
+
+    <button type="submit" class="terminal-btn success">
+        <span class="btn-arrow">→</span> 登 录 / LOGIN
+    </button>
+</form>
+
+{% endblock %}
