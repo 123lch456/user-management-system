@@ -8,66 +8,82 @@
 </head>
 <body>
 
-    {# ========== 全屏终端容器 ========== #}
+    {# ========== CRT 暗角 + 扫描线覆盖 ========== #}
+    <div class="crt-overlay"></div>
+
     <div class="terminal-wrapper">
+        <div class="terminal-window">
 
-        {# ========== 顶部状态条 ========== #}
-        <div class="terminal-titlebar">
-            <div class="titlebar-dots">
-                <span class="titlebar-dot close" title="关闭"></span>
-                <span class="titlebar-dot minimize" title="最小化"></span>
-                <span class="titlebar-dot maximize" title="最大化"></span>
+            {# ========== 终端标题栏 ========== #}
+            <div class="terminal-titlebar">
+                <div class="titlebar-dots">
+                    <span class="titlebar-dot close" title="关闭"></span>
+                    <span class="titlebar-dot minimize" title="最小化"></span>
+                    <span class="titlebar-dot maximize" title="最大化"></span>
+                </div>
+                <span class="titlebar-text">
+                    {{ session.username if session.username else 'guest' }}@system:~ — 用户管理系统
+                </span>
+                <div class="titlebar-menu">
+                    {% if session.username %}
+                    <span>帮助</span>
+                    {% else %}
+                    <a href="/login" class="menu-link">登录</a>
+                    <a href="/register" class="menu-link-reg">注册</a>
+                    {% endif %}
+                </div>
             </div>
-            <span class="titlebar-text">user@system:~ — 用户管理系统  |  {{ 'AUTH' if session.username else 'GUEST' }}</span>
-            <div class="titlebar-menu">
-                {% if session.username %}
-                <span>帮助</span>
-                {% else %}
-                <a href="/login" style="color:var(--green-primary);text-decoration:none;font-size:11px;">登录</a>
-                <a href="/register" style="color:var(--cyan);text-decoration:none;font-size:11px;">注册</a>
-                {% endif %}
+
+            {# ========== 终端内容区域 ========== #}
+            <div class="terminal-body">
+
+                {# 顶部提示行 #}
+                <div class="terminal-prompt-line">
+                    <span class="prompt-user">root</span>
+                    <span class="prompt-at">@</span>
+                    <span class="prompt-host">system</span>
+                    <span class="prompt-colon">:</span>
+                    <span class="prompt-path">~</span>
+                    <span class="prompt-symbol">$</span>
+                    <span class="prompt-cmd">cat /var/www/user_manager</span>
+                </div>
+
+                {# ========== 子模板内容 ========== #}
+                {% block content %}{% endblock %}
+
+                {# 底部提示行 + 闪烁光标 #}
+                <div class="terminal-prompt-line prompt-bottom">
+                    <span class="prompt-user">{{ session.username if session.username else 'guest' }}</span>
+                    <span class="prompt-at">@</span>
+                    <span class="prompt-host">system</span>
+                    <span class="prompt-colon">:</span>
+                    <span class="prompt-path">~</span>
+                    <span class="prompt-symbol">$</span>
+                    <span class="cursor-blink"></span>
+                </div>
             </div>
+
+            {# ========== 状态栏 ========== #}
+            <div class="terminal-footer">
+                <div class="footer-left">
+                    <span class="footer-indicator"></span>
+                    <span>CONNECTED</span>
+                    <span class="footer-sep">|</span>
+                    <span>SSL: ENABLED</span>
+                    <span class="footer-sep">|</span>
+                    <span>NODE: {{ session.username if session.username else 'ANONYMOUS' }}</span>
+                </div>
+                <div class="footer-right">
+                    <span>{{ 'AUTH' if session.username else 'GUEST' }}</span>
+                    <span class="footer-sep">|</span>
+                    <span>SYS: v2.1.0</span>
+                </div>
+            </div>
+
+            {# 拖拽手柄 #}
+            <div class="terminal-resize-handle"></div>
+
         </div>
-
-        {# ========== 终端主体（自动撑满剩余空间） ========== #}
-        <div class="terminal-body">
-            <div class="terminal-prompt-line">
-                <span class="prompt-user">root</span>
-                <span class="prompt-at">@</span>
-                <span class="prompt-host">system</span>
-                <span class="prompt-path">:~$</span>
-            </div>
-
-            {# ========== 页面内容区域 ========== #}
-            {% block content %}{% endblock %}
-
-            {# ========== 底部提示行 ========== #}
-            <div class="terminal-prompt-line" style="margin-top:16px;">
-                <span class="prompt-user">root</span>
-                <span class="prompt-at">@</span>
-                <span class="prompt-host">system</span>
-                <span class="prompt-path">:~$</span>
-                <span class="cursor-blink"></span>
-            </div>
-        </div>
-
-        {# ========== 底部状态栏 ========== #}
-        <div class="terminal-footer">
-            <div class="footer-left">
-                <span class="footer-indicator"></span>
-                <span>CONNECTED</span>
-                <span>|</span>
-                <span>SSL: ENABLED</span>
-                <span>|</span>
-                <span>NODE: {{ session.username if session.username else 'ANONYMOUS' }}</span>
-            </div>
-            <div class="footer-right">
-                <span>UPTIME: 00:42:37</span>
-                <span>|</span>
-                <span>SYS: v2.1.0</span>
-            </div>
-        </div>
-
     </div>
 
 </body>

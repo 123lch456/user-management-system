@@ -2,7 +2,7 @@
 {% block content %}
 
 {% if user %}
-    {# ===== 已登录状态 — 终端输出风格 ===== #}
+    {# ===== 已登录状态 ===== #}
     <div class="terminal-output">
         <span class="line green">[+] 身份验证通过</span>
         <span class="line dim">[*] 正在加载用户数据...</span>
@@ -84,9 +84,7 @@
         <span class="line dim">使用以下命令退出系统：</span>
     </div>
 
-    <a href="/logout" class="logout-link">
-        ⏻ logout
-    </a>
+    <a href="/logout" class="logout-link">⏻ logout</a>
 
 {% else %}
     {# ===== 未登录状态 ===== #}

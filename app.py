@@ -16,16 +16,15 @@ app.config.update(
     SESSION_COOKIE_SECURE=True,
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
-    PERMANENT_SESSION_LIFETIME=3600,       # session 有效期 1 小时
+    PERMANENT_SESSION_LIFETIME=3600,
     SESSION_COOKIE_NAME='session',
 )
 
-# 登录频率限制：{ip: [attempts, first_attempt_time]}
+# 登录频率限制
 LOGIN_ATTEMPTS = {}
 
 # ========== 数据库初始化 ==========
 def init_db():
-    """初始化 SQLite 数据库，创建 users 表并插入默认用户"""
     os.makedirs("data", exist_ok=True)
     conn = sqlite3.connect("data/users.db")
     c = conn.cursor()
@@ -38,7 +37,6 @@ def init_db():
             phone TEXT
         )
     """)
-    # 插入默认用户（使用 INSERT OR IGNORE 防止重复插入）
     c.execute("INSERT OR IGNORE INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)",
               ("admin", generate_password_hash("admin123"), "admin@example.com", "13800138000"))
     c.execute("INSERT OR IGNORE INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)",
@@ -47,12 +45,10 @@ def init_db():
     conn.close()
     print("[DB] 数据库初始化完成")
 
-# ========== 密码从环境变量读取（避免硬编码在源码中） ==========
-# 设置方式：export ADMIN_PASSWORD="YourStrongPassword" 或在 .env 中定义
+# 密码从环境变量读取
 _ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "LCh123456*")
 _ALICE_PASSWORD = os.environ.get("ALICE_PASSWORD", "Al1ce#2025!")
 
-# 用户数据库（密码使用哈希存储）
 USERS = {
     "LCH's-website-123456": {
         "username": "LCH's-website-123456",
@@ -74,14 +70,12 @@ USERS = {
 
 
 def mask_phone(phone):
-    """手机号脱敏：138****8000"""
     if len(phone) >= 7:
         return phone[:3] + "****" + phone[7:]
     return phone
 
 
 def mask_email(email):
-    """邮箱脱敏：a***n@example.com"""
     if "@" in email:
         name, domain = email.split("@", 1)
         if len(name) > 2:
@@ -92,25 +86,49 @@ def mask_email(email):
     return email
 
 
+def get_db():
+    return sqlite3.connect("data/users.db")
+
+
+def get_user_from_db(username):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT username, password, email, phone FROM users WHERE username = ?", (username,))
+    row = c.fetchone()
+    conn.close()
+    if row:
+        return {
+            "username": row[0],
+            "password": row[1],
+            "email": row[2] or "",
+            "phone": row[3] or "",
+            "role": "user",
+            "balance": 0,
+        }
+    return None
+
+
 def safe_user(username):
-    """返回脱敏后的用户数据，排除密码字段"""
-    if username not in USERS:
+    if username in USERS:
+        raw = USERS[username]
+    else:
+        raw = get_user_from_db(username)
+    if raw is None:
         return None
-    raw = USERS[username]
     return {
         "username": raw["username"],
-        "email": mask_email(raw["email"]),
-        "phone": mask_phone(raw["phone"]),
-        "role": raw["role"],
-        "balance": raw["balance"],
+        "email": mask_email(raw.get("email", "")),
+        "phone": mask_phone(raw.get("phone", "")),
+        "role": raw.get("role", "user"),
+        "balance": raw.get("balance", 0),
     }
 
 
 def safe_check_password(username, password):
-    """恒定时间密码校验，防止基于响应时间的用户名枚举"""
     user = USERS.get(username)
     if user is None:
-        # 用户不存在时，用虚拟哈希执行同样的校验操作消耗相同时间
+        user = get_user_from_db(username)
+    if user is None:
         check_password_hash(
             "pbkdf2:sha256:600000$dummy$dummy_dummy_dummy_dummy_dummy_dummy",
             password
@@ -120,13 +138,12 @@ def safe_check_password(username, password):
 
 
 def generate_csrf_token():
-    """生成 CSRF Token 并存入 session"""
     token = uuid.uuid4().hex
     session["_csrf_token"] = token
     return token
 
 
-# ========== 安全响应头 (HSTS + 防点击劫持 + 防 MIME 嗅探 + CSP + 隐藏服务器版本) ==========
+# ========== 安全响应头 ==========
 @app.after_request
 def add_security_headers(response):
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
@@ -153,7 +170,6 @@ def login():
         ip = request.remote_addr or "127.0.0.1"
         now = time.time()
 
-        # === 登录频率限制：放在 CSRF 之前，防止被绕过 ===
         if ip in LOGIN_ATTEMPTS:
             attempts, first = LOGIN_ATTEMPTS[ip]
             if now - first > 300:
@@ -165,7 +181,6 @@ def login():
         else:
             LOGIN_ATTEMPTS[ip] = [1, now]
 
-        # CSRF 验证（速率限制后的第二道防线）
         token = request.form.get("_csrf_token", "")
         if token != session.get("_csrf_token", ""):
             return render_template("login.html", error="请求校验失败，请刷新页面后重试", csrf_token=generate_csrf_token())
@@ -173,7 +188,6 @@ def login():
         username = request.form.get("username", "")
         password = request.form.get("password", "")
 
-        # 恒定时间密码校验（防用户枚举）
         if safe_check_password(username, password):
             session.permanent = True
             session["username"] = username
@@ -183,7 +197,6 @@ def login():
 
         return render_template("login.html", error="用户名或密码错误", csrf_token=session.get("_csrf_token"))
 
-    # GET 请求：生成新的 CSRF Token
     return render_template("login.html", csrf_token=generate_csrf_token())
 
 
@@ -193,7 +206,6 @@ def logout():
     return redirect("/")
 
 
-# ========== 用户注册（SQL 注入演示） ==========
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -202,13 +214,13 @@ def register():
         email = request.form.get("email", "")
         phone = request.form.get("phone", "")
 
-        # 直接使用 f-string 拼接 SQL（故意不参数化，用于演示 SQL 注入）
         conn = sqlite3.connect("data/users.db")
         c = conn.cursor()
-        sql = f"INSERT INTO users (username, password, email, phone) VALUES ('{username}', '{generate_password_hash(password)}', '{email}', '{phone}')"
-        print(f"[REGISTER SQL] {sql}")
+        sql = "INSERT INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)"
+        params = (username, generate_password_hash(password), email, phone)
+        print(f"[REGISTER SQL] {sql} | params={params}")
         try:
-            c.execute(sql)
+            c.execute(sql, params)
             conn.commit()
             conn.close()
             return redirect("/login?msg=注册成功，请登录")
@@ -219,18 +231,16 @@ def register():
     return render_template("register.html")
 
 
-# ========== 用户搜索（SQL 注入演示） ==========
 @app.route("/search")
 def search():
     keyword = request.args.get("keyword", "")
-
-    # 直接使用 f-string 拼接 SQL（故意不参数化，用于演示 SQL 注入）
     conn = sqlite3.connect("data/users.db")
     c = conn.cursor()
-    sql = f"SELECT id, username, email, phone FROM users WHERE username LIKE '%{keyword}%' OR email LIKE '%{keyword}%'"
-    print(f"[SEARCH SQL] {sql}")
+    sql = "SELECT id, username, email, phone FROM users WHERE username LIKE ? OR email LIKE ?"
+    params = (f"%{keyword}%", f"%{keyword}%")
+    print(f"[SEARCH SQL] {sql} | params={params}")
     try:
-        c.execute(sql)
+        c.execute(sql, params)
         results = c.fetchall()
         conn.close()
     except Exception as e:
@@ -244,12 +254,8 @@ def search():
 
 
 if __name__ == "__main__":
-    # 初始化数据库
     init_db()
-
-    # 隐藏 Werkzeug 开发服务器版本信息
     from werkzeug.serving import WSGIRequestHandler
     WSGIRequestHandler.server_version = "server"
     WSGIRequestHandler.sys_version = ""
-
     app.run(debug=False, host="0.0.0.0", port=5000, ssl_context="adhoc")
