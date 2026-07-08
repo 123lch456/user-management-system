@@ -20,6 +20,12 @@
 <div class="terminal-error">{{ error }}</div>
 {% endif %}
 
+{% if request.args.get('msg') %}
+<div class="terminal-output">
+    <span class="line green">[+] {{ request.args.get('msg') }}</span>
+</div>
+{% endif %}
+
 <form method="POST" action="/login" class="terminal-form">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 

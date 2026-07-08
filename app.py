@@ -4,6 +4,7 @@ import secrets
 import time
 import uuid
 import os
+import sqlite3
 
 app = Flask(__name__)
 
@@ -21,6 +22,30 @@ app.config.update(
 
 # 登录频率限制：{ip: [attempts, first_attempt_time]}
 LOGIN_ATTEMPTS = {}
+
+# ========== 数据库初始化 ==========
+def init_db():
+    """初始化 SQLite 数据库，创建 users 表并插入默认用户"""
+    os.makedirs("data", exist_ok=True)
+    conn = sqlite3.connect("data/users.db")
+    c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            email TEXT,
+            phone TEXT
+        )
+    """)
+    # 插入默认用户（使用 INSERT OR IGNORE 防止重复插入）
+    c.execute("INSERT OR IGNORE INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)",
+              ("admin", generate_password_hash("admin123"), "admin@example.com", "13800138000"))
+    c.execute("INSERT OR IGNORE INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)",
+              ("alice", generate_password_hash("alice2025"), "alice@example.com", "13900139001"))
+    conn.commit()
+    conn.close()
+    print("[DB] 数据库初始化完成")
 
 # ========== 密码从环境变量读取（避免硬编码在源码中） ==========
 # 设置方式：export ADMIN_PASSWORD="YourStrongPassword" 或在 .env 中定义
@@ -119,7 +144,7 @@ def add_security_headers(response):
 def index():
     username = session.get("username")
     user = safe_user(username) if username else None
-    return render_template("index.html", user=user)
+    return render_template("index.html", user=user, search_results=None, search_keyword="")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -154,7 +179,7 @@ def login():
             session["username"] = username
             LOGIN_ATTEMPTS.pop(ip, None)
             user = safe_user(username)
-            return render_template("index.html", user=user)
+            return render_template("index.html", user=user, search_results=None, search_keyword="")
 
         return render_template("login.html", error="用户名或密码错误", csrf_token=session.get("_csrf_token"))
 
@@ -168,7 +193,60 @@ def logout():
     return redirect("/")
 
 
+# ========== 用户注册（SQL 注入演示） ==========
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+        email = request.form.get("email", "")
+        phone = request.form.get("phone", "")
+
+        # 直接使用 f-string 拼接 SQL（故意不参数化，用于演示 SQL 注入）
+        conn = sqlite3.connect("data/users.db")
+        c = conn.cursor()
+        sql = f"INSERT INTO users (username, password, email, phone) VALUES ('{username}', '{generate_password_hash(password)}', '{email}', '{phone}')"
+        print(f"[REGISTER SQL] {sql}")
+        try:
+            c.execute(sql)
+            conn.commit()
+            conn.close()
+            return redirect("/login?msg=注册成功，请登录")
+        except Exception as e:
+            conn.close()
+            return render_template("register.html", error=f"注册失败：{e}")
+
+    return render_template("register.html")
+
+
+# ========== 用户搜索（SQL 注入演示） ==========
+@app.route("/search")
+def search():
+    keyword = request.args.get("keyword", "")
+
+    # 直接使用 f-string 拼接 SQL（故意不参数化，用于演示 SQL 注入）
+    conn = sqlite3.connect("data/users.db")
+    c = conn.cursor()
+    sql = f"SELECT id, username, email, phone FROM users WHERE username LIKE '%{keyword}%' OR email LIKE '%{keyword}%'"
+    print(f"[SEARCH SQL] {sql}")
+    try:
+        c.execute(sql)
+        results = c.fetchall()
+        conn.close()
+    except Exception as e:
+        conn.close()
+        results = []
+        print(f"[SEARCH ERROR] {e}")
+
+    username = session.get("username")
+    user = safe_user(username) if username else None
+    return render_template("index.html", user=user, search_results=results, search_keyword=keyword)
+
+
 if __name__ == "__main__":
+    # 初始化数据库
+    init_db()
+
     # 隐藏 Werkzeug 开发服务器版本信息
     from werkzeug.serving import WSGIRequestHandler
     WSGIRequestHandler.server_version = "server"

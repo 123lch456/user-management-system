@@ -20,10 +20,12 @@
             </div>
             <span class="titlebar-text">user@system:~ — 用户管理系统  |  {{ 'AUTH' if session.username else 'GUEST' }}</span>
             <div class="titlebar-menu">
-                <span>文件</span>
-                <span>编辑</span>
-                <span>查看</span>
+                {% if session.username %}
                 <span>帮助</span>
+                {% else %}
+                <a href="/login" style="color:var(--green-primary);text-decoration:none;font-size:11px;">登录</a>
+                <a href="/register" style="color:var(--cyan);text-decoration:none;font-size:11px;">注册</a>
+                {% endif %}
             </div>
         </div>
 
