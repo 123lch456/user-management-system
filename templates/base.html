@@ -8,64 +8,64 @@
 </head>
 <body>
 
+    {# ========== 全屏终端容器 ========== #}
     <div class="terminal-wrapper">
-        <div class="terminal-window">
 
-            {# ========== 终端标题栏 ========== #}
-            <div class="terminal-titlebar">
-                <div class="titlebar-dots">
-                    <span class="titlebar-dot close" title="关闭"></span>
-                    <span class="titlebar-dot minimize" title="最小化"></span>
-                    <span class="titlebar-dot maximize" title="最大化"></span>
-                </div>
-                <span class="titlebar-text">user@system:~ — 用户管理系统</span>
-                <div class="titlebar-menu">
-                    <span>文件</span>
-                    <span>编辑</span>
-                    <span>查看</span>
-                </div>
+        {# ========== 顶部状态条 ========== #}
+        <div class="terminal-titlebar">
+            <div class="titlebar-dots">
+                <span class="titlebar-dot close" title="关闭"></span>
+                <span class="titlebar-dot minimize" title="最小化"></span>
+                <span class="titlebar-dot maximize" title="最大化"></span>
             </div>
-
-            {# ========== 终端提示行 ========== #}
-            <div class="terminal-body">
-                <div class="terminal-prompt-line">
-                    <span class="prompt-user">root</span>
-                    <span class="prompt-at">@</span>
-                    <span class="prompt-host">system</span>
-                    <span class="prompt-path">:~$</span>
-                </div>
-
-                {# ========== 页面内容区域 ========== #}
-                {% block content %}{% endblock %}
-
-                {# ========== 底部提示行 ========== #}
-                <div class="terminal-prompt-line" style="margin-top:20px;">
-                    <span class="prompt-user">root</span>
-                    <span class="prompt-at">@</span>
-                    <span class="prompt-host">system</span>
-                    <span class="prompt-path">:~$</span>
-                    <span class="cursor-blink"></span>
-                </div>
+            <span class="titlebar-text">user@system:~ — 用户管理系统  |  {{ 'AUTH' if session.username else 'GUEST' }}</span>
+            <div class="titlebar-menu">
+                <span>文件</span>
+                <span>编辑</span>
+                <span>查看</span>
+                <span>帮助</span>
             </div>
-
-            {# ========== 终端状态栏 ========== #}
-            <div class="terminal-footer">
-                <div class="footer-left">
-                    <span class="footer-indicator"></span>
-                    <span>CONNECTED</span>
-                    <span>|</span>
-                    <span>SSL: ENABLED</span>
-                    <span>|</span>
-                    <span>NODE: {{ session.username if session.username else 'ANONYMOUS' }}</span>
-                </div>
-                <div class="footer-right">
-                    <span>{{ 'AUTH' if session.username else 'GUEST' }}</span>
-                    <span>|</span>
-                    <span>v2.0.1 / 2026</span>
-                </div>
-            </div>
-
         </div>
+
+        {# ========== 终端主体（自动撑满剩余空间） ========== #}
+        <div class="terminal-body">
+            <div class="terminal-prompt-line">
+                <span class="prompt-user">root</span>
+                <span class="prompt-at">@</span>
+                <span class="prompt-host">system</span>
+                <span class="prompt-path">:~$</span>
+            </div>
+
+            {# ========== 页面内容区域 ========== #}
+            {% block content %}{% endblock %}
+
+            {# ========== 底部提示行 ========== #}
+            <div class="terminal-prompt-line" style="margin-top:16px;">
+                <span class="prompt-user">root</span>
+                <span class="prompt-at">@</span>
+                <span class="prompt-host">system</span>
+                <span class="prompt-path">:~$</span>
+                <span class="cursor-blink"></span>
+            </div>
+        </div>
+
+        {# ========== 底部状态栏 ========== #}
+        <div class="terminal-footer">
+            <div class="footer-left">
+                <span class="footer-indicator"></span>
+                <span>CONNECTED</span>
+                <span>|</span>
+                <span>SSL: ENABLED</span>
+                <span>|</span>
+                <span>NODE: {{ session.username if session.username else 'ANONYMOUS' }}</span>
+            </div>
+            <div class="footer-right">
+                <span>UPTIME: 00:42:37</span>
+                <span>|</span>
+                <span>SYS: v2.1.0</span>
+            </div>
+        </div>
+
     </div>
 
 </body>
