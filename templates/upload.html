@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="terminal-output">
+    <span class="line dim">[*] 初始化上传模块...</span>
+    <span class="line green">[+] 上传服务就绪</span>
+    <hr class="terminal-divider">
+</div>
+
+{% if error %}
+<div class="terminal-error">{{ error }}</div>
+{% endif %}
+
+{% if success %}
+<div class="terminal-output">
+    <span class="line green">[+] 上传成功！</span>
+    <span class="line dim">[*] 文件 URL: {{ file_url }}</span>
+    <hr class="terminal-divider">
+    <div class="terminal-box" style="text-align:center;">
+        <img src="{{ file_url }}" alt="preview" style="max-width:100%;max-height:300px;border-radius:4px;border:1px solid var(--border-color);">
+    </div>
+</div>
+{% endif %}
+
+<form method="POST" action="/upload" enctype="multipart/form-data" class="terminal-form">
+    <div class="terminal-field">
+        <label class="field-prompt" for="file">选择文件 / Select File</label>
+        <input type="file" id="file" name="file" class="terminal-input"
+               style="padding:10px 14px;cursor:pointer;">
+    </div>
+
+    <button type="submit" class="terminal-btn success">
+        <span class="btn-arrow">↑</span> 上 传 / UPLOAD
+    </button>
+</form>
+
+{% endblock %}

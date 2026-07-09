@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 import secrets
 import time
@@ -18,6 +18,7 @@ app.config.update(
     SESSION_COOKIE_SAMESITE='Lax',
     PERMANENT_SESSION_LIFETIME=3600,
     SESSION_COOKIE_NAME='session',
+    MAX_CONTENT_LENGTH=16 * 1024 * 1024,  # 最大上传 16MB
 )
 
 # 登录频率限制
@@ -251,6 +252,49 @@ def search():
     username = session.get("username")
     user = safe_user(username) if username else None
     return render_template("index.html", user=user, search_results=results, search_keyword=keyword)
+
+
+@app.route("/upload", methods=["GET", "POST"])
+def upload():
+    if not session.get("username"):
+        return redirect("/login")
+    if request.method == "POST":
+        file = request.files.get("file")
+        if not file or file.filename == "":
+            return render_template("upload.html", error="请选择文件")
+
+        # 1. 单文件大小校验 (< 2MB)
+        file.seek(0, 2)
+        size = file.tell()
+        file.seek(0)
+        if size > 2 * 1024 * 1024:
+            return render_template("upload.html", error="文件过大（最大 2MB）")
+
+        # 2. 后缀白名单
+        ALLOWED = {"png", "jpg", "jpeg", "gif", "webp"}
+        ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+        if ext not in ALLOWED:
+            return render_template("upload.html", error=f"不允许的文件类型: .{ext}")
+
+        # 3. UUID 安全命名（消除路径穿越）
+        safe_name = f"{uuid.uuid4().hex}.{ext}"
+
+        # 4. 保存到非公开目录
+        upload_dir = os.path.join("data", "uploads")
+        os.makedirs(upload_dir, exist_ok=True)
+        file.save(os.path.join(upload_dir, safe_name))
+
+        file_url = f"/file/{safe_name}"
+        return render_template("upload.html", success=True, file_url=file_url)
+    return render_template("upload.html")
+
+
+@app.route("/file/<filename>")
+def serve_upload(filename):
+    if not session.get("username"):
+        return redirect("/login")
+    upload_dir = os.path.join("data", "uploads")
+    return send_from_directory(upload_dir, filename)
 
 
 if __name__ == "__main__":

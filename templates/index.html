@@ -81,10 +81,15 @@
         {% endif %}
 
         <hr class="terminal-divider">
-        <span class="line dim">使用以下命令退出系统：</span>
+        <span class="line dim">使用以下命令：</span>
     </div>
 
-    <a href="/logout" class="logout-link">⏻ logout</a>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
+        <a href="/upload" class="terminal-btn" style="color:var(--amber);border-color:rgba(255,176,0,0.3);">
+            <span class="btn-arrow" style="color:var(--amber);">↑</span> 上传头像
+        </a>
+        <a href="/logout" class="logout-link" style="margin:0;">⏻ logout</a>
+    </div>
 
 {% else %}
     {# ===== 未登录状态 ===== #}
