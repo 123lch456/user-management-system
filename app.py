@@ -38,6 +38,11 @@ def init_db():
             phone TEXT
         )
     """)
+    # 为旧数据库添加 balance 列（如果不存在）
+    try:
+        c.execute("ALTER TABLE users ADD COLUMN balance REAL DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass
     c.execute("INSERT OR IGNORE INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)",
               ("admin", generate_password_hash("admin123"), "admin@example.com", "13800138000"))
     c.execute("INSERT OR IGNORE INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)",
@@ -295,6 +300,44 @@ def serve_upload(filename):
         return redirect("/login")
     upload_dir = os.path.join("data", "uploads")
     return send_from_directory(upload_dir, filename)
+
+
+@app.route("/profile")
+def profile():
+    if not session.get("username"):
+        return redirect("/login")
+    username = session["username"]
+    user = None
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT id, username, email, phone, balance FROM users WHERE username = ?", (username,))
+    row = c.fetchone()
+    conn.close()
+    if row:
+        user = {
+            "id": row[0],
+            "username": row[1],
+            "email": row[2] or "",
+            "phone": row[3] or "",
+            "balance": row[4] or 0,
+        }
+    return render_template("profile.html", user=user)
+
+
+@app.route("/recharge", methods=["POST"])
+def recharge():
+    if not session.get("username"):
+        return redirect("/login")
+    amount = float(request.form.get("amount", "0"))
+    if amount <= 0:
+        return render_template("profile.html", user=None, error="充值金额必须大于零")
+    username = session["username"]
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("UPDATE users SET balance = balance + ? WHERE username = ?", (amount, username))
+    conn.commit()
+    conn.close()
+    return redirect("/profile")
 
 
 if __name__ == "__main__":
