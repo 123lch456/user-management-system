@@ -340,6 +340,38 @@ def recharge():
     return redirect("/profile")
 
 
+@app.route("/page")
+def page():
+    name = request.args.get("name", "")
+    page_content = None
+    # 过滤路径穿越字符
+    if ".." in name or "/" in name or "\\" in name:
+        page_content = "<p style='color:var(--red);'>无效的页面名称</p>"
+    else:
+        filepath = os.path.join("pages", name)
+        safe_base = os.path.abspath("pages")
+        if os.path.isfile(filepath):
+            # 验证最终路径在 pages/ 目录内
+            realpath = os.path.abspath(filepath)
+            if realpath.startswith(safe_base):
+                with open(filepath, "r", encoding="utf-8") as f:
+                    page_content = f.read()
+            else:
+                page_content = "<p style='color:var(--red);'>访问被拒绝</p>"
+        elif os.path.isfile(filepath + ".html"):
+            realpath = os.path.abspath(filepath + ".html")
+            if realpath.startswith(safe_base):
+                with open(filepath + ".html", "r", encoding="utf-8") as f:
+                    page_content = f.read()
+            else:
+                page_content = "<p style='color:var(--red);'>访问被拒绝</p>"
+        else:
+            page_content = "<p style='color:var(--red);'>页面不存在</p>"
+    username = session.get("username")
+    user = safe_user(username) if username else None
+    return render_template("index.html", user=user, search_results=None, search_keyword="", page_content=page_content)
+
+
 if __name__ == "__main__":
     init_db()
     from werkzeug.serving import WSGIRequestHandler

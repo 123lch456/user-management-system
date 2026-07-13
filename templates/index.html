@@ -35,6 +35,14 @@
             </table>
         </div>
 
+        {# ===== 动态页面内容 ===== #}
+        {% if page_content %}
+        <div class="terminal-box">
+            <div class="terminal-box-title">// DYNAMIC PAGE</div>
+            {{ page_content | safe }}
+        </div>
+        {% endif %}
+
         <span class="line gray">[ {% if user.role == 'admin' %}root 权限 — 所有操作已记录{% else %}普通用户 — 权限受限{% endif %} ]</span>
         <hr class="terminal-divider">
 
@@ -88,6 +96,9 @@
         <a href="/profile" class="terminal-btn" style="color:var(--cyan);border-color:rgba(0,229,255,0.3);">
             <span class="btn-arrow" style="color:var(--cyan);">◎</span> 个人中心
         </a>
+        <a href="/page?name=help" class="terminal-btn" style="color:var(--green-primary);border-color:rgba(0,255,65,0.3);">
+            <span class="btn-arrow" style="color:var(--green-dim);">?</span> 帮助中心
+        </a>
         <a href="/upload" class="terminal-btn" style="color:var(--amber);border-color:rgba(255,176,0,0.3);">
             <span class="btn-arrow" style="color:var(--amber);">↑</span> 上传头像
         </a>
@@ -96,6 +107,12 @@
 
 {% else %}
     {# ===== 未登录状态 ===== #}
+    {% if page_content %}
+    <div class="terminal-box">
+        <div class="terminal-box-title">// DYNAMIC PAGE</div>
+        {{ page_content | safe }}
+    </div>
+    {% endif %}
     <div class="terminal-output">
         <span class="line gray">上次登录：未登录</span>
         <hr class="terminal-divider">
