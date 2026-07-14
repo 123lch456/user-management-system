@@ -23,6 +23,7 @@
 {% endif %}
 
 <form method="POST" action="/upload" enctype="multipart/form-data" class="terminal-form">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
     <div class="terminal-field">
         <label class="field-prompt" for="file">选择文件 / Select File</label>
         <input type="file" id="file" name="file" class="terminal-input"

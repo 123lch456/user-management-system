@@ -12,6 +12,8 @@
 {% endif %}
 
 <form method="POST" action="/register" class="terminal-form">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
     <div class="terminal-field">
         <label class="field-prompt" for="username">用户名 / Username</label>
         <input type="text" id="username" name="username" class="terminal-input"
