@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="terminal-output">
+    <span class="line dim">[*] 正在加载个人中心...</span>
+    <span class="line green">[+] 个人中心已就绪</span>
+    <hr class="terminal-divider">
+</div>
+
+{% if error %}
+<div class="terminal-error">{{ error }}</div>
+{% endif %}
+
+{% if user %}
+<div class="terminal-box">
+    <div class="terminal-box-title">// USER PROFILE — {{ user.username | upper }}</div>
+    <table class="terminal-table">
+        <tr>
+            <td class="label">ID</td>
+            <td class="value">{{ user.id }}</td>
+        </tr>
+        <tr>
+            <td class="label">用户名</td>
+            <td class="value">{{ user.username }}</td>
+        </tr>
+        <tr>
+            <td class="label">邮箱</td>
+            <td class="value email">{{ user.email }}</td>
+        </tr>
+        <tr>
+            <td class="label">手机</td>
+            <td class="value phone">{{ user.phone }}</td>
+        </tr>
+        <tr>
+            <td class="label">余额</td>
+            <td class="value balance">¥{{ user.balance }}</td>
+        </tr>
+    </table>
+</div>
+
+<hr class="terminal-divider">
+<span class="line amber">充值 (Recharge) :</span>
+
+<form method="POST" action="/recharge" class="terminal-form">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="username" value="{{ user.username }}">
+    <div class="terminal-field">
+        <label class="field-prompt" for="amount">金额 / Amount</label>
+        <input type="number" id="amount" name="amount" class="terminal-input"
+               placeholder="输入充值金额" step="0.01" min="0.01" required>
+    </div>
+    <button type="submit" class="terminal-btn success">
+        <span class="btn-arrow">→</span> 充 值 / RECHARGE
+    </button>
+</form>
+
+<hr class="terminal-divider">
+<span class="line amber">修改密码 (Change Password) :</span>
+
+<form method="POST" action="/change-password" class="terminal-form">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="username" value="{{ user.username }}">
+    <div class="terminal-field">
+        <label class="field-prompt" for="new_password">新密码 / New Password</label>
+        <input type="password" id="new_password" name="new_password" class="terminal-input"
+               placeholder="输入新密码" required>
+    </div>
+    <div class="terminal-field">
+        <label class="field-prompt" for="confirm_password">确认密码 / Confirm</label>
+        <input type="password" id="confirm_password" name="confirm_password" class="terminal-input"
+               placeholder="再次输入新密码" required>
+    </div>
+    <button type="submit" class="terminal-btn success">
+        <span class="btn-arrow">→</span> 修 改 密 码
+    </button>
+</form>
+
+{% else %}
+<div class="terminal-output">
+    <span class="line red">[-] 未找到用户信息</span>
+    <span class="line dim">[*] 请在数据库中创建您的账户后重试</span>
+</div>
+{% endif %}
+
+{% endblock %}

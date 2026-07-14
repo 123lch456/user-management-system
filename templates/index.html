@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if user %}
+    {# ===== 已登录状态 ===== #}
+    <div class="terminal-output">
+        <span class="line green">[+] 身份验证通过</span>
+        <span class="line dim">[*] 正在加载用户数据...</span>
+        <span class="line green">[+] 完成。</span>
+        <hr class="terminal-divider">
+
+        <div class="terminal-box">
+            <div class="terminal-box-title">// USER PROFILE — {{ user.role | upper }}</div>
+            <table class="terminal-table">
+                <tr>
+                    <td class="label">用户名</td>
+                    <td class="value">{{ user.username }}</td>
+                </tr>
+                <tr>
+                    <td class="label">邮箱</td>
+                    <td class="value email">{{ user.email }}</td>
+                </tr>
+                <tr>
+                    <td class="label">手机</td>
+                    <td class="value phone">{{ user.phone }}</td>
+                </tr>
+                <tr>
+                    <td class="label">角色</td>
+                    <td class="value {{ user.role }}">{{ user.role }}</td>
+                </tr>
+                <tr>
+                    <td class="label">余额</td>
+                    <td class="value balance">¥{{ user.balance }}</td>
+                </tr>
+            </table>
+        </div>
+
+        {# ===== 动态页面内容 ===== #}
+        {% if page_content %}
+        <div class="terminal-box">
+            <div class="terminal-box-title">// DYNAMIC PAGE</div>
+            {{ page_content | safe }}
+        </div>
+        {% endif %}
+
+        <span class="line gray">[ {% if user.role == 'admin' %}root 权限 — 所有操作已记录{% else %}普通用户 — 权限受限{% endif %} ]</span>
+        <hr class="terminal-divider">
+
+        {# ===== 搜索功能 ===== #}
+        <span class="line amber">搜索用户 (SQL注入演示) :</span>
+        <form method="GET" action="/search" class="terminal-form" style="max-width:100%;">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input type="text" name="keyword" class="terminal-input" placeholder="输入用户名或邮箱..." value="{{ search_keyword }}" style="flex:1;min-width:200px;">
+                <button type="submit" class="terminal-btn success" style="flex-shrink:0;">
+                    <span class="btn-arrow">→</span> SEARCH
+                </button>
+            </div>
+        </form>
+
+        {% if search_results is not none %}
+            <hr class="terminal-divider">
+            {% if search_results %}
+                <span class="line green">[+] 找到 {{ search_results | length }} 条结果</span>
+                <div class="terminal-box" style="max-width:100%;overflow-x:auto;">
+                    <table class="terminal-table" style="min-width:500px;">
+                        <thead>
+                            <tr style="border-bottom:1px solid var(--border-color);">
+                                <td class="label">ID</td>
+                                <td class="label">用户名</td>
+                                <td class="label">邮箱</td>
+                                <td class="label">手机</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in search_results %}
+                            <tr>
+                                <td class="value">{{ row[0] }}</td>
+                                <td class="value">{{ row[1] }}</td>
+                                <td class="value email">{{ row[2] }}</td>
+                                <td class="value phone">{{ row[3] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <span class="line red">[-] 无搜索结果</span>
+            {% endif %}
+        {% endif %}
+
+        <hr class="terminal-divider">
+        <span class="line dim">使用以下命令：</span>
+    </div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
+        <a href="/profile" class="terminal-btn" style="color:var(--cyan);border-color:rgba(0,229,255,0.3);">
+            <span class="btn-arrow" style="color:var(--cyan);">◎</span> 个人中心
+        </a>
+        <a href="/page?name=help" class="terminal-btn" style="color:var(--green-primary);border-color:rgba(0,255,65,0.3);">
+            <span class="btn-arrow" style="color:var(--green-dim);">?</span> 帮助中心
+        </a>
+        <a href="/upload" class="terminal-btn" style="color:var(--amber);border-color:rgba(255,176,0,0.3);">
+            <span class="btn-arrow" style="color:var(--amber);">↑</span> 上传头像
+        </a>
+        <a href="/logout" class="logout-link" style="margin:0;">⏻ logout</a>
+    </div>
+
+{% else %}
+    {# ===== 未登录状态 ===== #}
+    {% if page_content %}
+    <div class="terminal-box">
+        <div class="terminal-box-title">// DYNAMIC PAGE</div>
+        {{ page_content | safe }}
+    </div>
+    {% endif %}
+    <div class="terminal-output">
+        <span class="line gray">上次登录：未登录</span>
+        <hr class="terminal-divider">
+        <span class="line dim" style="font-size:12px;">  ___ _   _ ___  ___  ___ ___ ___</span>
+        <span class="line dim" style="font-size:12px;"> / _ \ | | | _ \/ _ \| _ \_ _/ __|</span>
+        <span class="line dim" style="font-size:12px;">| (_) | |_| |   / (_) |  _/| |\__ \</span>
+        <span class="line dim" style="font-size:12px;"> \__\_\\__,_|_|_\\\___/|_| |___|___/</span>
+        <span class="line dim" style="font-size:12px;"> ___ _   _ _  _  ___ ___ ___ ___</span>
+        <span class="line dim" style="font-size:12px;">/ __| | | | \| |/ _ \ __/ __/ __|</span>
+        <span class="line dim" style="font-size:12px;">\__ \ |_| | .` | (_) _|\__ \__ \</span>
+        <span class="line dim" style="font-size:12px;">|___/\___/|_|\_|\___/___|___/___/</span>
+        <hr class="terminal-divider">
+
+        <span class="line amber">⚠  此系统为授权用户专用</span>
+        <span class="line gray">   请登录以访问用户管理面板</span>
+        <span class="line dim">   ─────────────────────────────</span>
+    </div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <a href="/login" class="terminal-btn success">
+            <span class="btn-arrow">→</span> 登录系统
+        </a>
+        <a href="/register" class="terminal-btn" style="color:var(--cyan);border-color:rgba(0,229,255,0.3);">
+            <span class="btn-arrow" style="color:var(--cyan);">+</span> 注册账号
+        </a>
+    </div>
+{% endif %}
+
+{% endblock %}
