@@ -89,6 +89,28 @@
         {% endif %}
 
         <hr class="terminal-divider">
+
+        {# ===== URL 抓取功能 ===== #}
+        <span class="line amber">URL 抓取 / Fetch URL (SSRF演示) :</span>
+        <form method="POST" action="/fetch-url" class="terminal-form" style="max-width:100%;">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input type="text" name="url" class="terminal-input" placeholder="输入URL (支持http:// file:// 等)" value="{{ fetch_url }}" style="flex:1;min-width:200px;">
+                <button type="submit" class="terminal-btn success" style="flex-shrink:0;">
+                    <span class="btn-arrow">→</span> FETCH
+                </button>
+            </div>
+        </form>
+
+        {% if fetch_result %}
+        <hr class="terminal-divider">
+        <div class="terminal-box" style="max-width:100%;">
+            <div class="terminal-box-title">// FETCH RESULT</div>
+            <pre style="color:var(--white);white-space:pre-wrap;word-break:break-all;font-family:var(--font-mono);font-size:12px;max-height:400px;overflow-y:auto;">{{ fetch_result }}</pre>
+        </div>
+        {% endif %}
+
+        <hr class="terminal-divider">
         <span class="line dim">使用以下命令：</span>
     </div>
 

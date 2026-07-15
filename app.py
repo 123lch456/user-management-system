@@ -6,6 +6,8 @@ import uuid
 import os
 import sqlite3
 from urllib.parse import urlparse
+import urllib.request
+import urllib.error
 
 app = Flask(__name__)
 
@@ -282,7 +284,7 @@ def add_security_headers(response):
 def index():
     username = session.get("username")
     user = safe_user(username) if username else None
-    return render_template("index.html", user=user, search_results=None, search_keyword="")
+    return render_template("index.html", user=user, search_results=None, search_keyword="", fetch_result="", fetch_url="")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -314,7 +316,7 @@ def login():
             session["username"] = username
             LOGIN_ATTEMPTS.pop(ip, None)
             user = safe_user(username)
-            return render_template("index.html", user=user, search_results=None, search_keyword="")
+            return render_template("index.html", user=user, search_results=None, search_keyword="", fetch_result="", fetch_url="")
 
         return render_template("login.html", error="用户名或密码错误", csrf_token=session.get("_csrf_token"))
 
@@ -371,7 +373,7 @@ def search():
 
     username = session.get("username")
     user = safe_user(username) if username else None
-    return render_template("index.html", user=user, search_results=results, search_keyword=keyword)
+    return render_template("index.html", user=user, search_results=results, search_keyword=keyword, fetch_result="", fetch_url="")
 
 
 @app.route("/upload", methods=["GET", "POST"])
@@ -483,7 +485,7 @@ def page():
             page_content = "<p style='color:var(--red);'>页面不存在</p>"
     username = session.get("username")
     user = safe_user(username) if username else None
-    return render_template("index.html", user=user, search_results=None, search_keyword="", page_content=page_content)
+    return render_template("index.html", user=user, search_results=None, search_keyword="", page_content=page_content, fetch_result="", fetch_url="")
 
 
 @app.route("/change-password", methods=["POST"])
@@ -540,6 +542,43 @@ def _get_profile_user():
             "balance": row[4] or 0,
         }
     return None
+
+
+@app.route("/fetch-url", methods=["POST"])
+def fetch_url():
+    if not session.get("username"):
+        return redirect("/login")
+    url = request.form.get("url", "")
+    result = ""
+    # SSRF 防护
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        result = "Error: 仅支持 http/https 协议"
+    else:
+        hostname = parsed.hostname or ""
+        # 拦截内网地址
+        import ipaddress
+        try:
+            addr = ipaddress.ip_address(hostname)
+            if addr.is_private or addr.is_loopback or addr.is_link_local:
+                result = "Error: 禁止访问内网地址"
+        except ValueError:
+            # 主机名而非IP，拦截 localhost
+            if hostname.lower() in ("localhost", "127.0.0.1", "0.0.0.0"):
+                result = "Error: 禁止访问内网地址"
+    if not result:
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                status = resp.status
+                body = resp.read().decode("utf-8", errors="replace")[:5000]
+                result = f"Status: {status}\n\n{body}"
+        except Exception as e:
+            result = f"Error: {e}"
+    username = session.get("username")
+    user = safe_user(username) if username else None
+    return render_template("index.html", user=user, search_results=None,
+                           search_keyword="", fetch_result=result, fetch_url=url)
 
 
 if __name__ == "__main__":
