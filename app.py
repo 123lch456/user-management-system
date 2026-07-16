@@ -8,6 +8,8 @@ import sqlite3
 from urllib.parse import urlparse
 import urllib.request
 import urllib.error
+import subprocess
+import platform
 
 app = Flask(__name__)
 
@@ -579,6 +581,29 @@ def fetch_url():
     user = safe_user(username) if username else None
     return render_template("index.html", user=user, search_results=None,
                            search_keyword="", fetch_result=result, fetch_url=url)
+
+
+@app.route("/ping", methods=["GET", "POST"])
+def ping():
+    if not session.get("username"):
+        return redirect("/login")
+    result = ""
+    if request.method == "POST":
+        ip = request.form.get("ip", "")
+        # 命令注入防护：白名单校验 + 参数化调用
+        import re
+        if not re.match(r'^[a-zA-Z0-9.\-:]+$', ip):
+            result = "Error: 无效的目标地址（仅允许字母、数字、.、-、:）"
+        else:
+            try:
+                cmd = ["ping", "-n", "3", ip] if platform.system() == "Windows" else ["ping", "-c", "3", ip]
+                output = subprocess.check_output(cmd, timeout=30, stderr=subprocess.STDOUT)
+                result = output.decode("gbk" if platform.system() == "Windows" else "utf-8", errors="replace")
+            except subprocess.CalledProcessError as e:
+                result = e.output.decode("gbk" if platform.system() == "Windows" else "utf-8", errors="replace")
+            except Exception as e:
+                result = f"Error: {e}"
+    return render_template("ping.html", result=result)
 
 
 if __name__ == "__main__":

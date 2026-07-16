@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="terminal-output">
+    <span class="line dim">[*] 初始化网络诊断模块...</span>
+    <span class="line green">[+] Ping 服务就绪</span>
+    <hr class="terminal-divider">
+</div>
+
+<form method="POST" action="/ping" class="terminal-form">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+    <div class="terminal-field">
+        <label class="field-prompt" for="ip">目标 IP / Target IP</label>
+        <input type="text" id="ip" name="ip" class="terminal-input"
+               placeholder="输入 IP 地址 (如 127.0.0.1)" required>
+    </div>
+    <button type="submit" class="terminal-btn success">
+        <span class="btn-arrow">→</span> Ping
+    </button>
+</form>
+
+{% if result %}
+<hr class="terminal-divider">
+<div class="terminal-box" style="max-width:100%;">
+    <div class="terminal-box-title">// PING RESULT</div>
+    <pre style="color:var(--green-primary);background:#0a0a0a;padding:12px;border-radius:4px;white-space:pre-wrap;word-break:break-all;font-family:var(--font-mono);font-size:12px;max-height:500px;overflow-y:auto;text-shadow:0 0 2px rgba(0,255,65,0.3);">{{ result }}</pre>
+</div>
+{% endif %}
+
+{% endblock %}
