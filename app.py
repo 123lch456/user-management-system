@@ -10,6 +10,8 @@ import urllib.request
 import urllib.error
 import subprocess
 import platform
+import re
+import json
 
 app = Flask(__name__)
 
@@ -604,6 +606,36 @@ def ping():
             except Exception as e:
                 result = f"Error: {e}"
     return render_template("ping.html", result=result)
+
+
+@app.route("/xml-import", methods=["GET", "POST"])
+def xml_import():
+    if not session.get("username"):
+        return redirect("/login")
+    result = ""
+    if request.method == "POST":
+        xml_data = request.form.get("xml_data", "")
+        # XXE 防护：拦截外部实体声明
+        if re.search(r'<!ENTITY\s+\w+\s+SYSTEM', xml_data):
+            result = "Error: 禁止外部实体 (XXE)"
+        elif re.search(r'<!DOCTYPE', xml_data):
+            result = "Error: 禁止 DOCTYPE 声明"
+        else:
+            try:
+                import xml.etree.ElementTree as ET
+                root = ET.fromstring(xml_data)
+                users = []
+                for user_elem in root.findall("user"):
+                    name_elem = user_elem.find("name")
+                    email_elem = user_elem.find("email")
+                    users.append({
+                        "name": name_elem.text if name_elem is not None else "",
+                        "email": email_elem.text if email_elem is not None else "",
+                    })
+                result = json.dumps(users, indent=2, ensure_ascii=False)
+            except Exception as e:
+                result = f"Error: {e}"
+    return render_template("xml_import.html", result=result)
 
 
 if __name__ == "__main__":

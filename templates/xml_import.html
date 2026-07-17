@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="terminal-output">
+    <span class="line dim">[*] 初始化 XML 解析引擎...</span>
+    <span class="line green">[+] XML 导入服务就绪</span>
+    <hr class="terminal-divider">
+</div>
+
+<form method="POST" action="/xml-import" class="terminal-form" style="max-width:100%;">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+    <div class="terminal-field">
+        <label class="field-prompt" for="xml_data">XML 数据 / XML Data (XXE演示)</label>
+        <textarea id="xml_data" name="xml_data" class="terminal-input" rows="12"
+                  placeholder="输入 XML 数据..." style="resize:vertical;" required></textarea>
+    </div>
+    <button type="submit" class="terminal-btn success">
+        <span class="btn-arrow">→</span> 导 入 / IMPORT
+    </button>
+</form>
+
+{% if result %}
+<hr class="terminal-divider">
+<div class="terminal-box" style="max-width:100%;">
+    <div class="terminal-box-title">// PARSE RESULT</div>
+    <pre style="color:var(--green-primary);background:#0a0a0a;padding:12px;border-radius:4px;white-space:pre-wrap;word-break:break-all;font-family:var(--font-mono);font-size:12px;max-height:400px;overflow-y:auto;text-shadow:0 0 2px rgba(0,255,65,0.3);">{{ result }}</pre>
+</div>
+{% endif %}
+
+{% endblock %}
